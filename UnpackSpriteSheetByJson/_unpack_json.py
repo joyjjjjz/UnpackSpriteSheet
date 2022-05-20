@@ -5,13 +5,14 @@ import json
 import os
 import os.path
 from PIL import Image
+from os import path as op
 
 def json_to_dict(json_filename):
     json_file = open(json_filename, 'r')
     all_pic_dic = json.load(json_file)
     all_item_list = []
-    for one_pic_item in all_pic_dic['res']:
-        one_json_item = all_pic_dic['res'][one_pic_item]
+    for one_pic_item in all_pic_dic['frames']:
+        one_json_item = all_pic_dic['frames'][one_pic_item]
         one_item = {}
         one_item['name'] = one_pic_item.strip().lstrip().rstrip(',')
         one_item['x'] = one_json_item['x']
@@ -50,36 +51,61 @@ def gen_png_from_json(folder_name, json_filename, png_filename):
         
         #print one_item_data
 
-if __name__ == '__main__':
 
-    rootdir = sys.argv[1]
+def GetMergeFiles(srcDir, dstFiles):
+    assert isinstance(dstFiles, set)
+    for root, dirs, names in os.walk(srcDir):
+        for d in dirs:
+            srcSubdir = op.join(root, d)
+            GetMergeFiles(srcSubdir, dstFiles)
+
+        for name in names:
+            path = os.path.join(root, name)
+            if os.path.isfile(path):
+                dstFiles.add(op.splitext(path)[0])
+
+
+if __name__ == '__main__':
+    # rootdir = sys.argv[1]
+    rootdir = "D:/unpack_res"
     #'E:/_github/Python/TexturePacker'
 
-    file_name_set = set()
+    files_set = set()
     if os.path.exists(rootdir):
-        list_file = os.listdir(rootdir)
-        for i in range(0,len(list_file)):
-            one_file_name = list_file[i]
-            path = os.path.join(rootdir, one_file_name)
-            if os.path.isfile(path):
-                file_name_set.add(os.path.splitext(one_file_name)[0])
+        GetMergeFiles(rootdir, files_set)
 
-    for file_name in file_name_set:
-        json_filename = os.path.join(rootdir, file_name) + '.json'
-        png_filename = os.path.join(rootdir, file_name) + '.png'
-        jpg_filename = os.path.join(rootdir, file_name) + '.jpg'
-    
-        if os.path.exists(json_filename):
-            if os.path.exists(png_filename):
-                try:
-                    gen_png_from_json(os.path.join(rootdir, file_name), json_filename, png_filename )
-                except Exception:
-                    print '!!!!!!!!!!!!!!!!!!!!' + json_filename + ' json error !!!!!!!!!!!!!!!!!!!!!'
-            elif os.path.exists(jpg_filename):
-                try:
-                    gen_png_from_json(os.path.join(rootdir, file_name), json_filename, jpg_filename )
-                except Exception:
-                    print '!!!!!!!!!!!!!!!!!!!!' + json_filename + ' json error !!!!!!!!!!!!!!!!!!!!!'
-                
+    succeedSet = set()
+    failedSet = set()
+    for absDir in files_set:
+        json_filename = os.path.join(rootdir, absDir) + '.json'
+        png_filename = os.path.join(rootdir, absDir) + '.png'
+        jpg_filename = os.path.join(rootdir, absDir) + '.jpg'
 
-   
+        if not os.path.exists(json_filename):
+            continue
+
+        succeed = True
+        if os.path.exists(png_filename):
+            try:
+                gen_png_from_json(absDir, json_filename, png_filename )
+            except Exception, e:
+                succeed = False
+                print("{}, png error:{}".format(json_filename, e))
+            finally:
+                pass
+        elif os.path.exists(jpg_filename):
+            try:
+                gen_png_from_json(absDir, json_filename, jpg_filename )
+            except Exception, e:
+                succeed = False
+                print("{}, jpg error:{}".format(jpg_filename, e))
+            finally:
+                pass
+
+        if succeed:
+            succeedSet.add(json_filename)
+        else:
+            failedSet.add(json_filename)
+
+    print("process succeed len:{}, detail:{}".format(len(succeedSet), '\n'.join(succeedSet)))
+    print("process failed len:{}, detail:{}".format(len(failedSet), '\n'.join(failedSet)))

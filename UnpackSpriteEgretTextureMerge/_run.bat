@@ -1,2 +1,2 @@
-python _unpack_json_egret.py E:\_github\Python\UnpackSpriteSheet\UnpackSpriteEgret
+python _unpack_json_egret.py D:/unpack_res
 pause
