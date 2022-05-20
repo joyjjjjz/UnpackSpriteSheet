@@ -11,8 +11,17 @@ def json_to_dict(json_filename):
     json_file = open(json_filename, 'r')
     all_pic_dic = json.load(json_file)
     all_item_list = []
-    for one_pic_item in all_pic_dic['frames']:
-        one_json_item = all_pic_dic['frames'][one_pic_item]
+
+    toFindKeys = ['frames', 'res']
+    findKey = ''
+    for key in toFindKeys:
+        if key in all_pic_dic:
+            findKey = key
+            break
+    assert findKey
+
+    for one_pic_item in all_pic_dic[findKey]:
+        one_json_item = all_pic_dic[findKey][one_pic_item]
         one_item = {}
         one_item['name'] = one_pic_item.strip().lstrip().rstrip(',')
         one_item['x'] = one_json_item['x']
