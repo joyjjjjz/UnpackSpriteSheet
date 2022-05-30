@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+# Python图像处理PIL各模块详细介绍
+# https://blog.csdn.net/zhangziju/article/details/79123275
 import os,sys
 import json
 import os
